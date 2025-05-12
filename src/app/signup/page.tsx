@@ -1,9 +1,10 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import {axios} from "axios"
+import axios from "axios"
 import { useRouter } from 'next/navigation'
+import toast, { Toaster } from 'react-hot-toast'
 
 
 
@@ -13,9 +14,29 @@ export default function Signpage() {
         password : "",
         username : ""
     })
+    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false)
+    const [buttonDisabled, setButtonDisabled] = useState(true)
     const onSignUp = async () => {
-        
+      try {
+      setIsLoading(true)
+       const response = await axios.post("/api/users/signUp", user)
+       console.log(response.data)
+       router.push("/login")
+       
+      } catch (error : any) {
+        toast.error("SignUp Failed", error.message)   
+      }
+        finally{
+          setIsLoading(false)
+        }
     }
+    useEffect(() =>{
+      if(user.email.length > 0 && user.password.length > 0 && user.username.length > 0){
+        setButtonDisabled(false);
+      }else
+      setButtonDisabled(true)
+    }, [user])
   return (
     <div className='flex min-h-screen justify-center items-center'>
         <div className=' flex flex-col justify-center items-center border-1 p-5  border-gray-600 rounded-2xl'>
@@ -56,12 +77,16 @@ export default function Signpage() {
         placeholder='Enter your password'/>
 
       <button 
-      onClick={onSignUp}
-      className='w-[200px] h-[50px] mt-5 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-2xl shadow-md transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1'>
-        SignUp
-      </button>
-      <div className='mt-2'>Alreay have an account?<Link href="/login" className='text-blue-600'> Login</Link></div>
+  disabled={buttonDisabled}
+  onClick={onSignUp}
+  className={`w-[200px] h-[50px] mt-5 text-white py-2 px-4 rounded-2xl shadow-md transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1
+    ${buttonDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+>
+  {isLoading ? "Please wait..." : "signUp" }
+</button>
+      <div className='mt-2'>Already have an account?<Link href="/login" className='text-blue-600'> Login</Link></div>
         </div>
+        <Toaster />
     </div>
   )
 }
