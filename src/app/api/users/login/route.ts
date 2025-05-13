@@ -8,6 +8,12 @@ import jwt from "jsonwebtoken"
 await Connect();
 
 export async function POST(request : NextRequest) {
+interface TokenData {
+  id: string;
+  username: string;
+  email: string;
+}
+
     try {
         const reqBody = await request.json();
         const {email, password} = reqBody;
@@ -25,14 +31,14 @@ export async function POST(request : NextRequest) {
                 {status : 400});
         }
         // Create Token Data
-        const tokenData : any  = {
+        const tokenData : TokenData  = {
             id : user._id,
             username : user.username,
             email : user.email
         }
 
         //Create Token
-        const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY!, {expiresIn : "1h"})
+        const token = jwt.sign(tokenData, process.env.JWT_SECRET_KEY as string, {expiresIn : "1h"})
         console.log(token)
 
         const response = NextResponse.json({
@@ -44,7 +50,8 @@ export async function POST(request : NextRequest) {
         )
         return response
 
-    }catch (error : any){
+    }catch (error: unknown) {
+  if (error instanceof Error)
         return NextResponse.json({error : error.message},
             {status : 500}
         )
